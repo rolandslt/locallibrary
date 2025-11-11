@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from .models import Book, Author, BookInstance, Genre
-
+from django.views import generic
 def index(request):
     """View function for home page of site"""
 
@@ -16,8 +16,10 @@ def index(request):
     # The 'all()' is implied by default.
     num_authors = Author.objects.count()
     num_genre = Genre.objects.count()
-    num_science_books = Book.objects.filter(title__icontains='science').count()
-
+    num_science_books = Book.objects.filter(title__icontains='Science').count()
+    num_visits = request.session.get('num_visits', 0)
+    num_visits += 1
+    request.session['num_visits'] = num_visits
     context = {
         'num_books': num_books,
         'num_instance': num_instances,
@@ -25,8 +27,32 @@ def index(request):
         'num_authors': num_authors,
         'num_genre': num_genre,
         'num_science_books': num_science_books,
+        'num_visits': num_visits,
     }
 
     # Render the HTML template index.html with the data in the context variable
 
     return render(request, 'index.html', context=context)
+
+class BookListView(generic.ListView):
+    model = Book
+    context_object_name = 'book_list' # name for the list as a template variable
+    #queryset = Book.objects.filter(title__icontains='The')[:5] # Get 5 books containing the title war
+    template_name = 'books/book_list.html'
+    paginate_by = 2
+
+class BookDetailView(generic.DetailView):
+    model = Book
+
+class AuthorListView(generic.ListView):
+    model = Author
+    context_object_name = 'author_list'
+    template_name = 'authors/author_list.html'
+
+class AuthorDetailView(generic.DetailView):
+    model = Author
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['books'] = Book.objects.filter(author=self.object)
+        return context
