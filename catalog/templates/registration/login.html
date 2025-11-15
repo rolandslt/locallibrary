@@ -8,30 +8,30 @@
 
     {% if next %}
         {% if user.is_authenticated %}
-            <p>Your account doesn't have access to this page. To proceed.
+            <p>Your account doesn't have access to this page. To proceed,
                 please login with an acount that access. </p>
         {% else %}
             <p>Please login to see this page.</p>
         {% endif %}
     {% endif %}
 
-    <from method="post" action="{% url 'login' %}">
+    <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
         <table>
-            <str>
+            <tr>
                 <td>{{ form.username.label_tag }}</td>
                 <td>{{ form.username }}</td>
-            </str>
-            <str>
+            </tr>
+            <tr>
                 <td>{{ form.password.label_tag }}</td>
                 <td>{{ form.password }}</td>
-            </str>
+            </tr>
         </table>
         <input type="submit" value="login">
         <input type="hidden" value="next" value="{{ next }}"> 
-    </from>
+    </form>
 
 
     {# Assumes you set up the password_reset view in your URLConf #}
-    <p><a href="{ % url 'password_reset' %}">Lost password?</a></p>
+    <p><a href="{% url 'password_reset' %}">Lost password?</a></p>
 {% endblock %}

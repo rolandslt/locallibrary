@@ -3,6 +3,8 @@ from django.shortcuts import render
 # Create your views here.
 from .models import Book, Author, BookInstance, Genre
 from django.views import generic
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 def index(request):
     """View function for home page of site"""
 
@@ -39,7 +41,7 @@ class BookListView(generic.ListView):
     context_object_name = 'book_list' # name for the list as a template variable
     #queryset = Book.objects.filter(title__icontains='The')[:5] # Get 5 books containing the title war
     template_name = 'books/book_list.html'
-    paginate_by = 2
+    paginate_by = 10
 
 class BookDetailView(generic.DetailView):
     model = Book
@@ -56,3 +58,16 @@ class AuthorDetailView(generic.DetailView):
         context = super().get_context_data(**kwargs)
         context['books'] = Book.objects.filter(author=self.object)
         return context
+    
+class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
+    """Generic class-base view listing books on loan to current user."""
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return (
+            BookInstance.objects.filter(borrower=self.request.user)
+            .filter(status__exact='o')
+            .order_by('due_back')
+        )
